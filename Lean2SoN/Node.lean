@@ -7,12 +7,25 @@ inductive NodeData where
   | nullData
 deriving Inhabited, Repr
 
+-- Todo: need return and start
 structure Node where
   ref: NodeRef
   inputs: Array NodeRef := #[]
   outputs: Array NodeRef:= #[]
   data: NodeData
 deriving Inhabited, Repr
+
+instance : ToString NodeRef where
+  toString r := s!"NodeRef({r.nid})"
+
+instance : ToString NodeData where
+  toString
+    | .constantl v => s!"Const({v})"
+    | .nullData    => "Null"
+
+instance : ToString Node where
+  toString n :=
+    s!"Node(id={n.ref.nid}, inputs={n.inputs.map (·.nid)}, outputs={n.outputs.map (·.nid)}, data={n.data})"
 
 
 structure ManyNodes where
@@ -24,6 +37,12 @@ abbrev M := StateRefT ManyNodes IO
 
 
 namespace Node
+
+def getNodeByRef (ref : NodeRef) : M Node := do
+  let state ← get
+  match state.allNodes[ref.nid]? with
+  | some node => return node
+  | none      => panic! s!"Invalid NodeRef: {ref}"
 
 -- Loop through inputs and get their nodeRef
 def nodeIn(n: Node) (idx: Nat) : M Node := do
@@ -57,18 +76,25 @@ def addNode2 (newNode : Node) : M Unit := do
       allNodes     := arena.allNodes.push newNode }
 
 
-def nodeMK(inputs: Array NodeRef := #[]) : M Node := do
+def nodeMK (inputs : Array NodeRef := #[]) : M Node := do
   let uid := (← get).uniqueNodeId
-  let ref: NodeRef := {nid := uid}
-   let newNode : Node := { ref := ref, inputs := inputs, outputs := (#[] : Array NodeRef), data := NodeData.nullData }
-      --   -- Update outputs of all input nodes
-    let updatedInputs := inputs.map (fun n => { n with outputs := n.outputs.push newNode.ref })
+  let ref : NodeRef := { nid := uid }
 
-    let newNode : Node := { newNode with
-      ref := ref,
-      inputs := updatedInputs
-    }
+  -- Create base node
+  let newNode : Node := {
+    ref := ref,
+    inputs := inputs,
+    outputs := #[],
+    data := NodeData.nullData
+  }
 
-    addNode2 newNode
-    return newNode
+  -- Update each input node’s outputs to include this new node
+  for iRef in inputs do
+    let mut inputNode ← Node.getNodeByRef iRef
+    inputNode := { inputNode with outputs := inputNode.outputs.push ref }
+    modify fun st => { st with allNodes := st.allNodes.set! iRef.nid inputNode }
+
+  addNode2 newNode
+  return newNode
+
 end Node
