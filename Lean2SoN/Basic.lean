@@ -52,3 +52,17 @@ def isPrime (n : Nat) : Bool := Id.run do
 partial def nextPrime (n : Nat) : Nat :=
   let n := n + 1
   if isPrime n then n else nextPrime n
+
+
+def advanceString(s:String) (pos: String.Pos) : String.Pos :=
+  s.next pos
+
+
+def a : String := "test"
+
+-- it returns endPos if it does not contain it
+--#eval a.posOf 'a'  -- print the character at that position
+
+def a1 : String := "string2"
+
+#eval a1.get! (String.next a1 (String.next a1 (0 : String.Pos)))
