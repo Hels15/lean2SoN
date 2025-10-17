@@ -61,6 +61,29 @@ partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
   else
     (lexer, false)
 
+def isIdLetter (ch : Char) : Bool :=
+  ch.isAlpha || ch = '_' || ch.isDigit
+
+-- We need to undo the lexer's position advancing that we did in matchLex
+-- If match is true and the next character is not an underscore, identier and digit then return true
+-- If it is not then just take away the suntax's length from position
+def matchx (lexer : Lexer) (syn : String) : Lexer × Bool :=
+  let (lexer1, matched) := matchLex lexer syn
+  if !matched then
+    (lexer1, false)
+  else
+    match peek lexer1 with
+    | some ch =>
+        if !isIdLetter ch then
+          (lexer1, true)
+        else
+          -- backtrack: undo advancing by syntax length
+          let backPos := String.iterator (lexer.source.drop lexer1.position.byteIdx - syn.length)
+          ({ lexer with position := lexer.position }, false)
+    | none =>
+        -- end of input after syntax ⇒ valid match
+        (lexer1, true)
+
 
 
 end Lexer
