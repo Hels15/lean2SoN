@@ -65,4 +65,24 @@ def a : String := "test"
 
 def a1 : String := "string2"
 
+
+#eval a1.extract
+def isDigit (ch: Char) : Bool :=
+  ch.isDigit
+
+structure Lexer where
+  source : String
+  pos    : String.Pos
+deriving Repr
+
+-- "Method" version — not stored in the struct
+def Lexer.peek (self : Lexer) : Option Char :=
+  self.source.get? self.pos
+
+def example1 : IO Unit := do
+  let l := { source := "abc", pos := 0 : Lexer }
+  IO.println s!"peek: {l.peek}"
+
+
+#eval example1
 #eval a1.get! (String.next a1 (String.next a1 (0 : String.Pos)))

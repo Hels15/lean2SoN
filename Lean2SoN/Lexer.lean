@@ -64,6 +64,19 @@ partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
 def isIdLetter (ch : Char) : Bool :=
   ch.isAlpha || ch = '_' || ch.isDigit
 
+def isIdStart (ch: Char) : Bool :=
+  ch.isAlpha || ch = '_'
+
+def isNumber (ch: Char) : Bool :=
+   ch.isDigit
+
+def isNumberPeek(lexer: Lexer) : Bool :=
+    isNumber (lexer.peek.getD ' ')
+
+def isPunctuation (ch : Char) : Bool :=
+  let punctuations := "=;[]<>(){}+-/*!"
+  punctuations.contains ch
+
 -- We need to undo the lexer's position advancing that we did in matchLex
 -- If match is true and the next character is not an underscore, identier and digit then return true
 -- If it is not then just take away the suntax's length from position
@@ -78,11 +91,62 @@ def matchx (lexer : Lexer) (syn : String) : Lexer × Bool :=
           (lexer1, true)
         else
           -- backtrack: undo advancing by syntax length
-          let backPos := String.iterator (lexer.source.drop lexer1.position.byteIdx - syn.length)
-          ({ lexer with position := lexer.position }, false)
+          ({ lexer1 with position := lexer.position - syn.endPos}, false)
     | none =>
         -- end of input after syntax ⇒ valid match
         (lexer1, true)
+
+
+
+def parseNumberString (lexer : Lexer) : String := Id.run do
+  let start := lexer.position
+  let mut lexer := lexer
+  repeat
+    if let (lexer1, some ch) := nextChar lexer then
+      if !ch.isDigit then break
+      lexer := lexer1
+    else
+      break
+  return lexer.source.extract start lexer.position
+
+
+def parseNumber(lexer: Lexer) : Int :=
+   let snum := parseNumberString lexer
+   if snum.length > 1 && snum.get! 0 = '0' then
+     panic! "Syntax error: integer values cannot start with '0'"
+   else
+     snum.toInt!
+
+def parseId(lexer: Lexer) : String := Id.run do
+  let start:= lexer.position
+  let mut lexer := lexer
+
+    repeat
+    if let (lexer1, some ch) := nextChar lexer then
+      if !isIdLetter ch then break
+      lexer := lexer1
+    else
+      break
+  return lexer.source.extract start lexer.position
+
+def parsePunctuation(lexer: Lexer) : String := Id.run do
+    let start:= lexer.position
+    return lexer.source.extract start (String.next lexer.source start)
+
+
+def getAnyNextToken(lexer: Lexer) : String :=
+  if lexer.isEOF then
+    ""
+  else if isIdStart ((peek lexer).getD ' ') then
+    parseId lexer
+  else if isNumber ((peek lexer).getD ' ') then
+    parseNumberString lexer
+  else if isPunctuation ((peek lexer).getD ' ') then
+    parsePunctuation lexer
+  else
+    String.singleton ((peek lexer).getD ' ')
+
+
 
 
 

@@ -33,7 +33,7 @@ structure ManyNodes where
   -- Indexed by nodeRef
   allNodes: Array Node
 
-abbrev M := StateRefT ManyNodes IO
+abbrev M := ExceptT MyErrorType (StateRefT ManyNodes IO)
 
 
 namespace Node
