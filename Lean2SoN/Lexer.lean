@@ -1,3 +1,6 @@
+import Mathlib.Logic.Function.Iterate
+
+
 structure Lexer where
    source: String
    position: String.Pos := 0
@@ -57,7 +60,7 @@ partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
              else check (String.next lexer.source pos) (String.next syn i)
   let success := check lexer.position 0
   if success then
-    ({ lexer with position := (String.next lexer.source lexer.position) }, true)
+    ({ lexer with position := ((lexer.position.next^[syn.length])) }, true)
   else
     (lexer, false)
 
