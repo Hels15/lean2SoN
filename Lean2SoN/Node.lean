@@ -3,8 +3,9 @@ structure NodeRef where
 deriving Inhabited, Repr
 
 inductive NodeData where
-  | constantl (value: Int64)
+  | constantl (value: Int)
   | nullData
+  | returnData
 deriving Inhabited, Repr
 
 -- Todo: need return and start
@@ -22,6 +23,7 @@ instance : ToString NodeData where
   toString
     | .constantl v => s!"Const({v})"
     | .nullData    => "Null"
+    | .returnData  => "Return"
 
 instance : ToString Node where
   toString n :=
@@ -33,7 +35,7 @@ structure ManyNodes where
   -- Indexed by nodeRef
   allNodes: Array Node
 
-abbrev M := ExceptT MyErrorType (StateRefT ManyNodes IO)
+abbrev M := (StateRefT ManyNodes IO)
 
 
 namespace Node
@@ -64,8 +66,11 @@ def nodeNouts(n: Node) : Nat :=
 def nodeUnused(n: Node) : Bool :=
   n.outputs.size = 0
 
-def nodeIsCFG(n: Node) : Bool :=
-  false
+-- ReturnNode true
+-- StartNode true
+-- for everything else false
+-- def nodeIsCFG(n: Node) : Bool :=
+--   false
 
 -- Add a custom node to the arena
 def addNode2 (newNode : Node) : M Unit := do
@@ -76,7 +81,7 @@ def addNode2 (newNode : Node) : M Unit := do
       allNodes     := arena.allNodes.push newNode }
 
 
-def nodeMK (inputs : Array NodeRef := #[]) : M Node := do
+def nodeMK (inputs : Array NodeRef := #[])(data: NodeData := NodeData.nullData) : M Node := do
   let uid := (← get).uniqueNodeId
   let ref : NodeRef := { nid := uid }
 
@@ -85,7 +90,7 @@ def nodeMK (inputs : Array NodeRef := #[]) : M Node := do
     ref := ref,
     inputs := inputs,
     outputs := #[],
-    data := NodeData.nullData
+    data := data
   }
 
   -- Update each input node’s outputs to include this new node

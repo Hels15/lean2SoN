@@ -57,7 +57,7 @@ partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
              else check (String.next lexer.source pos) (String.next syn i)
   let success := check lexer.position 0
   if success then
-    ({ lexer with position := (String.next lexer.source lexer.position) }, true)
+    ({ lexer with position := (String.nextn syn.length lexer.source lexer.position) }, true)
   else
     (lexer, false)
 
