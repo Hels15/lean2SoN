@@ -104,6 +104,13 @@ import Lean2SoN.Parser
 
 -- Test
 
+
+-- String
+-- String.pos
+-- the number of chracters after current String.Pos
+
+-- Returns the next position in a string after position `p
+
 def assert {α : Type} [BEq α] (a b : α) : Bool :=
   let bool := a == b
   assert! bool
