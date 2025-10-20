@@ -2,17 +2,17 @@ import Mathlib.Logic.Function.Iterate
 
 
 structure Lexer where
-   source: String
+   source : String
    position: String.Pos := 0
 deriving Repr
 
 namespace Lexer
 
 
-def LexerMk(source1: String) : Lexer :=
+def LexerMk(source1 : String) : Lexer :=
     {source:= source1}
 
-def isEOF(lexer: Lexer) : Bool :=
+def isEOF(lexer : Lexer) : Bool :=
    lexer.position >= lexer.source.endPos
 
 def peek (lexer : Lexer) : Option Char :=
@@ -31,7 +31,7 @@ def nextChar (lexer : Lexer) : Lexer × Option Char :=
 
 -- Space has ASCII value of 32
 -- Everyting below that should be handled as a whitespace
-def isWhiteSpace(lexer: Lexer) : Bool :=
+def isWhiteSpace(lexer : Lexer) : Bool :=
   match peek lexer with
      | some ch => ch <= ' '
      | none => false
@@ -60,20 +60,20 @@ partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
              else check (String.next lexer.source pos) (String.next syn i)
   let success := check lexer.position 0
   if success then
-    ({ lexer with position := ((lexer.position.next^[syn.length])) }, true)
+    ({ lexer with position := ((lexer.source.next^[syn.length] lexer.position)) }, true)
   else
     (lexer, false)
 
 def isIdLetter (ch : Char) : Bool :=
   ch.isAlpha || ch = '_' || ch.isDigit
 
-def isIdStart (ch: Char) : Bool :=
+def isIdStart (ch : Char) : Bool :=
   ch.isAlpha || ch = '_'
 
-def isNumber (ch: Char) : Bool :=
+def isNumber (ch : Char) : Bool :=
    ch.isDigit
 
-def isNumberPeek(lexer: Lexer) : Bool :=
+def isNumberPeek(lexer : Lexer) : Bool :=
     isNumber (lexer.peek.getD ' ')
 
 def isPunctuation (ch : Char) : Bool :=
@@ -120,7 +120,7 @@ def parseNumber(lexer: Lexer) : Int :=
    else
      snum.toInt!
 
-def parseId(lexer: Lexer) : String := Id.run do
+def parseId(lexer : Lexer) : String := Id.run do
   let start:= lexer.position
   let mut lexer := lexer
 
@@ -132,12 +132,12 @@ def parseId(lexer: Lexer) : String := Id.run do
       break
   return lexer.source.extract start lexer.position
 
-def parsePunctuation(lexer: Lexer) : String := Id.run do
+def parsePunctuation(lexer : Lexer) : String := Id.run do
     let start:= lexer.position
     return lexer.source.extract start (String.next lexer.source start)
 
 
-def getAnyNextToken(lexer: Lexer) : String :=
+def getAnyNextToken(lexer : Lexer) : String :=
   if lexer.isEOF then
     ""
   else if isIdStart ((peek lexer).getD ' ') then
