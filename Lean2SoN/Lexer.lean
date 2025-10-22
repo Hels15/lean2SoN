@@ -1,11 +1,13 @@
 import Mathlib.Logic.Function.Iterate
 
+import Lean2SoN.Node
 
 structure Lexer where
    source : String
    position: String.Pos := 0
 deriving Repr
 
+open Node
 namespace Lexer
 
 
@@ -50,7 +52,13 @@ partial def skipWhiteSpace (lexer : Lexer) : Lexer :=
 -- Return false otherwise and do not advnace the cursor
 
 partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
+  dbg_trace s!"Before whitespace: {lexer.position}"
   let lexer := skipWhiteSpace lexer
+  dbg_trace s!"In matchLex"
+  dbg_trace s!"{syn}"
+  dbg_trace s!"{lexer.position}"
+  dbg_trace s!"{lexer.source.get! lexer.position}"
+
   let rec check (pos : String.Pos) (i : String.Pos) : Bool :=
     if i = syn.endPos then true                     -- matched all characters
     else match lexer.source.get? pos with
@@ -101,7 +109,7 @@ def matchx (lexer : Lexer) (syn : String) : Lexer × Bool :=
 
 
 
-def parseNumberString (lexer : Lexer) : String := Id.run do
+def parseNumberString (lexer : Lexer) : (Lexer ×  String) := Id.run do
   let start := lexer.position
   let mut lexer := lexer
   repeat
@@ -110,15 +118,15 @@ def parseNumberString (lexer : Lexer) : String := Id.run do
       lexer := lexer1
     else
       break
-  return lexer.source.extract start lexer.position
+  return (lexer, lexer.source.extract start lexer.position)
 
 
-def parseNumber(lexer: Lexer) : Int :=
-   let snum := parseNumberString lexer
+def parseNumber(lexer : Lexer) : M (Lexer × Int) :=
+   let (lexer, snum) := parseNumberString lexer
    if snum.length > 1 && snum.get! 0 = '0' then
-     panic! "Syntax error: integer values cannot start with '0'"
+    throw (IO.userError s!"Syntax error: integer values cannot start with '0'")
    else
-     snum.toInt!
+     return (lexer, snum.toInt!)
 
 def parseId(lexer : Lexer) : String := Id.run do
   let start:= lexer.position
@@ -137,17 +145,17 @@ def parsePunctuation(lexer : Lexer) : String := Id.run do
     return lexer.source.extract start (String.next lexer.source start)
 
 
-def getAnyNextToken(lexer : Lexer) : String :=
+def getAnyNextToken(lexer : Lexer) : Lexer × String :=
   if lexer.isEOF then
-    ""
+    (lexer, "")
   else if isIdStart ((peek lexer).getD ' ') then
-    parseId lexer
+    (lexer, parseId lexer)
   else if isNumber ((peek lexer).getD ' ') then
     parseNumberString lexer
   else if isPunctuation ((peek lexer).getD ' ') then
-    parsePunctuation lexer
+    (lexer, parsePunctuation lexer)
   else
-    String.singleton ((peek lexer).getD ' ')
+    (lexer, String.singleton ((peek lexer).getD ' '))
 
 
 
