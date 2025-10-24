@@ -58,7 +58,8 @@ def require (parser: Parser) (syn: String) : M (Parser) := do
 
 def parseIntegerLiteral(parser: Parser) : M (Parser × Node) := do
   let (lexer', intVal) ←  parser.lexerL.parseNumber
-  let node ← Node.nodeMK #[] (NodeData.constantl intVal)
+  let start ← parser.startN
+  let node ← Node.nodeMK #[start.ref] (NodeData.constantl intVal)
   return ({ parser with lexerL := lexer' }, node)
 
 def parsePrimary(parser: Parser) : M (Parser × Node):= do
