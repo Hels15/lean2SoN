@@ -6,7 +6,8 @@ inductive NodeData where
   | constantl (value: Int)
   | nullData
   | returnData
-deriving Inhabited, Repr
+  | startData
+deriving Inhabited, Repr, BEq
 
 -- Todo: need return and start
 structure Node where
@@ -24,6 +25,7 @@ instance : ToString NodeData where
     | .constantl v => s!"Const({v})"
     | .nullData    => "Null"
     | .returnData  => "Return"
+    | .startData   => "Start"
 
 instance : ToString Node where
   toString n :=

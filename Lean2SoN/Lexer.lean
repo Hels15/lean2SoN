@@ -52,13 +52,7 @@ partial def skipWhiteSpace (lexer : Lexer) : Lexer :=
 -- Return false otherwise and do not advnace the cursor
 
 partial def matchLex (lexer : Lexer) (syn : String) : Lexer × Bool :=
-  dbg_trace s!"Before whitespace: {lexer.position}"
   let lexer := skipWhiteSpace lexer
-  dbg_trace s!"In matchLex"
-  dbg_trace s!"{syn}"
-  dbg_trace s!"{lexer.position}"
-  dbg_trace s!"{lexer.source.get! lexer.position}"
-
   let rec check (pos : String.Pos) (i : String.Pos) : Bool :=
     if i = syn.endPos then true                     -- matched all characters
     else match lexer.source.get? pos with
