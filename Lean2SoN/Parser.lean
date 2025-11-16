@@ -1,5 +1,4 @@
 import Lean2SoN.Lexer
-import Lean2SoN.Node
 
 set_option trace.compiler.ir.result true
 
@@ -8,15 +7,14 @@ open Node
 
 structure Parser where
    lexerL: Lexer
-   startN: M Node
+   startN: Node
 
 
 namespace Parser
 
-def ParserMK(source: String) : Parser :=
- {lexerL := LexerMk source, startN := nodeMK #[] NodeData.startData}
-
-
+def ParserMK (source : String) : M Parser := do
+  let start ← nodeMK #[] NodeData.startData
+  return { lexerL := LexerMk source, startN := start }
 
 def error {α: Type}(lexer : Lexer) (syn : String) : IO α :=
   throw (IO.userError s!"{syn}")
@@ -58,7 +56,7 @@ def require (parser: Parser) (syn: String) : M (Parser) := do
 
 def parseIntegerLiteral(parser: Parser) : M (Parser × Node) := do
   let (lexer', intVal) ←  parser.lexerL.parseNumber
-  let start ← parser.startN
+  let start := parser.startN
   let node ← Node.nodeMK #[start.ref] (NodeData.constantl intVal)
   return ({ parser with lexerL := lexer' }, node)
 
@@ -74,7 +72,7 @@ def parseExpression(parser: Parser) : M (Parser × Node) := do
 def parseReturn(parser: Parser) : M (Parser × Node) := do
 
   -- get start node
-  let start ← parser.startN
+  let start := parser.startN
 
   -- parse expression
   let (parser, expr) <- parseExpression parser
@@ -95,7 +93,6 @@ def parseStatement(parser: Parser) : M (Parser × Node) := do
 
 
 def parse(parser: Parser) : M Node := do
-  let start ← parser.startN
   let (parser, ret) ← parseStatement parser
   if !parser.lexerL.isEOF then
     error parser.lexerL s!"Syntax error, unexpected {parser.lexerL.getAnyNextToken.2}"

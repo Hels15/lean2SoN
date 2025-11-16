@@ -6,16 +6,19 @@ import Lean2SoN.GraphViz
 open Node
 -- PROOFS
 def testSimpleProgram : M Unit := do
-  let parser := Parser.ParserMK "return 1;"
+  let parser  ← Parser.ParserMK "return 1;"
   let (retNode) ← parser.parse
 
   let graph : String <- GraphViz.generateDotOutput parser
   IO.println graph
 
   let start ← Node.getNodeByRef retNode.inputs[0]!
+  let start2 ← Node.getNodeByRef parser.startN.ref
   assert! (retNode.inputs.size == 2)
   assert! (NodeData.startData == start.data)
 
+  IO.println s!"Start node outputs size: {start2.outputs.size}"
+  IO.println s!"Start node outputs size: {start.outputs.size}"
   let expr ← Node.getNodeByRef (retNode.inputs[1]!)
   match expr.data with
   | NodeData.constantl v => assert! (v == 1)
@@ -23,7 +26,7 @@ def testSimpleProgram : M Unit := do
 
 
 def testZero : M Unit := do
-  let parser := Parser.ParserMK "return 0;"
+  let parser  ← Parser.ParserMK "return 0;"
   let (retNode) ← parser.parse
 
   let start ← Node.getNodeByRef retNode.inputs[0]!
@@ -38,7 +41,7 @@ def testZero : M Unit := do
 
 
 def testBad1 : M Unit := do
-  let parser := Parser.ParserMK "ret"
+  let parser ← Parser.ParserMK "ret"
   try
     -- call something that should fail
     let retNode ← parser.parse
@@ -51,7 +54,7 @@ def testBad1 : M Unit := do
 
 
 def testBad2 : M Unit := do
-  let parser := Parser.ParserMK "return 0123;"
+  let parser ← Parser.ParserMK "return 0123;"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")
@@ -61,7 +64,7 @@ def testBad2 : M Unit := do
 
 
 def testBad3 : M Unit := do
-  let parser := Parser.ParserMK "return --12;"
+  let parser ← Parser.ParserMK "return --12;"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")
@@ -71,7 +74,7 @@ def testBad3 : M Unit := do
 
 
 def testBad4 : M Unit := do
-  let parser := Parser.ParserMK "return 100"
+  let parser ← Parser.ParserMK "return 100"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")
@@ -82,7 +85,7 @@ def testBad4 : M Unit := do
 
 -- Negative numbers require unary operator support that is not in scope
 def testBad5 : M Unit := do
-  let parser := Parser.ParserMK "return -100;"
+  let parser ← Parser.ParserMK "return -100;"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")
@@ -92,7 +95,7 @@ def testBad5 : M Unit := do
 
 
 def testBad6 : M Unit := do
-  let parser := Parser.ParserMK "return100"
+  let parser ← Parser.ParserMK "return100"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")
@@ -102,7 +105,7 @@ def testBad6 : M Unit := do
 
 
 def testBad7 : M Unit := do
-  let parser := Parser.ParserMK "return 1;}"
+  let parser ← Parser.ParserMK "return 1;}"
   try
     let _ ← parser.parse
     throw (IO.userError "Expected failure, but parse succeeded")

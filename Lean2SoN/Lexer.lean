@@ -1,5 +1,4 @@
 import Mathlib.Logic.Function.Iterate
-
 import Lean2SoN.Node
 
 structure Lexer where

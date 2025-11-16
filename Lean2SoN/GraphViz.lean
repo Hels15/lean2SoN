@@ -8,6 +8,7 @@ namespace GraphViz
 
 
 def nodes (sb: String) (all: List Node) : M String := do
+
   let mut sb := sb ++ "\tsubgraph cluster_Nodes {\n"
 
   for n in all do
@@ -45,7 +46,7 @@ def nodeedges(sb: String) (all: List Node) : M String := do
 
            sb := sb ++ "];\n"
 
-      i := i + 1 -- For debugging
+        i := i + 1 -- For debugging
   return sb
 
 private partial def walk (all : Std.HashMap Nat Node) (n : Node) : M (Std.HashMap Nat Node) := do
@@ -65,10 +66,11 @@ private partial def walk (all : Std.HashMap Nat Node) (n : Node) : M (Std.HashMa
   return all
 
 def findAll (parser : Parser) : M (List Node) := do
-  let startNode ← parser.startN
+  let start ← Node.getNodeByRef parser.startN.ref
   let mut all : Std.HashMap Nat Node := {}
 
-  for c in startNode.outputs do
+  IO.println s!"StartNode outputs {start.outputs.size}"
+  for c in start.outputs do
     if let some c := c then
       let c1 ← getNodeByRef c
       all ← walk all c1
@@ -81,6 +83,7 @@ def findAll (parser : Parser) : M (List Node) := do
 def generateDotOutput (parser : Parser) : M String := do
 
   let all ← findAll parser
+  dbg_trace s!"all length for nodes: {all.length}"
 
   let mut sb: String := ""
   sb := sb ++ "digraph G {\n"
