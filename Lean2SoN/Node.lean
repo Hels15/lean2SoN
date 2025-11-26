@@ -8,6 +8,10 @@ inductive NodeData where
   | constantl (value: Int)
   | nullData
   | returnData
+  | addData
+  | subData
+  | mulData
+  | divData
   | startData
 deriving Inhabited, Repr, BEq, DecidableEq
 
@@ -88,6 +92,10 @@ instance : ToString NodeData where
   toString
     | .constantl v => s!"Const({v})"
     | .nullData    => "Null"
+    | .addData     => "Add"
+    | .subData     => "Sub"
+    | .mulData     => "Mul"
+    | .divData     => "Div"
     | .returnData  => "Return"
     | .startData   => "Start"
 
@@ -123,6 +131,10 @@ def label (n: Node) : String :=
   match n.data with
   | NodeData.constantl v => s!"#{v}"
   | NodeData.nullData    => "Null"
+  | NodeData.addData     => "Add"
+  | NodeData.subData     => "Sub"
+  | NodeData.mulData     => "Mul"
+  | NodeData.divData     => "Div"
   | NodeData.returnData  => "Return"
   | NodeData.startData   => "Start"
 
@@ -136,6 +148,10 @@ def uniqueName (n: Node) : String :=
 -- Graphical label, e.g. "+" or "Region" or "=="
 def glabel (n: Node) : String :=
   match n.data with
+  | NodeData.addData    => "+"
+  | NodeData.subData    => "-"
+  | NodeData.mulData    => "*"
+  | NodeData.divData    => "/"
   | _ => n.label
 
 

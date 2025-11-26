@@ -17,7 +17,6 @@ StartNode: Specail node, has no inputs, it has only outputs its the source node 
 ReturnNode: Its control is the startNode and the second input is the constant node.
 
 
-
 Data cycle: The constantNode is using the ReturnNode as an input, because the return node already uses the constant node so there would be a data cycle between them them that blows all kinds of invariants during layout.
 
 The nature of the null as an input: Not present in this chapter because everything is binded
@@ -37,7 +36,7 @@ Type lattice confusions(terminologies in Simple compared to what others say):
 
 Example(powerset)
 
-For us becuase the lattice is inverted the meet has to go down as usual(less detailed type) for us its the union(join) join has to go up more detailed type and that is the union as opposed to the intersection.
+For us becuase the lattice is inverted the meet has to go down as usual(less detailed type) for us its the union(join) join has to go up more detailed type and that is the intersection as opposed to the union.
 
 ## GraphViz
 
